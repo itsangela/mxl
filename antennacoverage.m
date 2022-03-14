@@ -2,40 +2,37 @@
 
 %% Define Transmitter 
 % Start with transmitter
-fq = 6e9; % 6 GHz
-antenna = design(dipole, fq);
+fq = 437e6; % 437 MHz
+txlocation = []; %% Somewhat above FXB for now
+txantenna = design(monopole, fq);
 tx = txsite("Name","MathWorks", ...
-    "Latitude",42.3001, ...
-    "Longitude",-71.3504, ...
-    "Antenna",antenna, ...
-    "AntennaHeight",60, ...        % Units: meters
+    "Latitude",42.2936, ...
+    "Longitude",-83, ...
+    "Antenna",txantenna, ...
+    "AntennaHeight",787000, ...        % Units: meters
     "TransmitterFrequency",fq, ... % Units: Hz
-    "TransmitterPower",15);        % Units: Watts
+    "TransmitterPower", 10^0.3);        % Units: Watts
 
 %% Define receiver sites
 % Define receiver sites in several surrounding towns and cities
 rxNames = [...
-   "Boston, MA","Lexington, MA","Concord, MA","Marlborough, MA", ...
-   "Hopkinton, MA","Holliston, MA","Foxborough, MA","Quincy, MA"];
+   "Ann Arbor, MI"];
 
 rxLocations = [...
-   42.3601 -71.0589; ... % Boston
-   42.4430 -71.2290; ... % Lexington
-   42.4604 -71.3489; ... % Concord
-   42.3459 -71.5523; ... % Marlborough
-   42.2287 -71.5226; ... % Hopkinton
-   42.2001 -71.4245; ... % Holliston
-   42.0654 -71.2478; ... % Foxborough
-   42.2529 -71.0023];    % Quincy
+   42.294, -83.712];    % FXB in Ann Arbor
+
+% Run turnstile antenna script
+turnstile_antenna;
+rxAntenna = turnstile;
 
 % Define receiver sensitivity. Sensitivity is the minimum signal strength in
 % power that is necessary for the receiver to accurately detect the signal.
-rxSensitivity = -90; % Units: dBm
+rxSensitivity = -100; % Units: dBm
 
 rxs = rxsite("Name",rxNames, ...
     "Latitude",rxLocations(:,1), ...
     "Longitude",rxLocations(:,2), ...
-    "Antenna",design(dipole,tx.TransmitterFrequency), ...
+    "Antenna",rxAntenna, ...
     "ReceiverSensitivity",rxSensitivity); % Units: dBm
 
 %% Show Sites on a Map
@@ -43,11 +40,10 @@ viewer = siteviewer;
 show(tx)
 show(rxs)
 
-viewer.Basemap = "openstreetmap";
-
 %% Display Idealized coverage map using Dipole Antenna
 coverage(tx,"freespace", ...
-    "SignalStrengths",rxSensitivity)
+    "SignalStrengths",rxSensitivity, ...
+    "ReceiverGain", 25)
 
 %% Plot Communication Links using Antenna
 sc = [0 0.3 0];
